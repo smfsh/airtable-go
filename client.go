@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fabioberger/airtable-go/utils"
+	"github.com/smfsh/airtable-go/utils"
 )
 
 const majorAPIVersion = 0
@@ -40,8 +40,8 @@ func New(apiKey, baseID string) (*Client, error) {
 	}
 
 	c := Client{
-		apiKey: apiKey,
-		baseID: baseID,
+		apiKey:                   apiKey,
+		baseID:                   baseID,
 		ShouldRetryIfRateLimited: true,
 		HTTPClient:               http.DefaultClient,
 	}
@@ -236,16 +236,22 @@ func (c *Client) requestWithBody(method string, endpoint string, body interface{
 // ListParameters let's the caller describe the parameters he want's sent with a ListRecords request
 // See the documentation at https://airtable.com/api for more information on how to use these parameters
 type ListParameters struct {
+	CellFormat      string
 	Fields          []string
 	FilterByFormula string
 	MaxRecords      int
 	Sort            []SortParameter
+	TimeZone        string
+	UserLocale      string
 	View            string
 }
 
 // URLEncode url encodes the ListParameters.
 func (l *ListParameters) URLEncode() string {
 	v := url.Values{}
+	if l.CellFormat != "" {
+		v.Add("cellFormat", l.CellFormat)
+	}
 	if len(l.Fields) != 0 {
 		for _, field := range l.Fields {
 			v.Add("fields[]", field)
@@ -266,6 +272,12 @@ func (l *ListParameters) URLEncode() string {
 			}
 			v.Add(fmt.Sprintf("sort[%d][direction]", i), direction)
 		}
+	}
+	if l.TimeZone != "" {
+		v.Add("timeZone", l.TimeZone)
+	}
+	if l.UserLocale != "" {
+		v.Add("userLocale", l.TimeZone)
 	}
 	if l.View != "" {
 		v.Add("view", l.View)
